@@ -5,13 +5,14 @@ import (
 	"bufio"
 	"fmt"
 	"os"
+	"io/ioutil"
 )
 
 type Server struct {
 	Connected bool
 }
 
-func listenToClient(conn net.Conn) {
+func (s Server) RequestPicture(conn net.Conn) {
 	for {
 		fmt.Print("Request: ")
 		reader := bufio.NewReader(os.Stdin)
@@ -21,7 +22,11 @@ func listenToClient(conn net.Conn) {
 			fmt.Println("Client closed connection!")
 			return
 		}
-		//TODO: write it so, that server gets picture data
+		data := make([]byte, 0, 1000000)
+		n, _ := bufio.NewReader(conn).Read(data)
+		fmt.Println("Read " + string(n) + " bytes")
+		fmt.Println("Saving picture as temp.jpg")
+		ioutil.WriteFile("temp.jpg", data, 0600)
 	}
 }
 
@@ -30,7 +35,7 @@ func (s Server) waitForClient(listener net.Listener) {
 		conn,_ := listener.Accept()
 		fmt.Println("Connection established!")
 		s.Connected = true
-		listenToClient(conn)
+		s.RequestPicture(conn)
 	}
 }
 

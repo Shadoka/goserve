@@ -7,7 +7,9 @@ import (
 	"io/ioutil"
 )
 
-func main() {
+type Client struct {}
+
+func (c Client) Start() {
 	fmt.Println("Connecting to localhost...")
 	conn, _ := net.Dial("tcp", "127.0.0.1:8081")
 	fmt.Println("Connection established!")
@@ -36,7 +38,11 @@ func sendData(content []byte, conn net.Conn) {
 }
 
 func sendCatPic(conn net.Conn) {
-	content,_ := ioutil.ReadFile("../resources/coolcat.jpg")
+	//TODO: check the number of read bytes, seems to be not reading at all
+	content, err := ioutil.ReadFile("../resources/coolcat.jpg")
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 	sendData(content, conn)
 }
 
