@@ -1,18 +1,22 @@
-package main
+package connection
 
 import (
 	"net"
 	"bufio"
 	"fmt"
-	"strings"
+	"os"
 )
+
+type Server struct {
+	Connected bool
+}
 
 func listenToClient(conn net.Conn) {
 	for {
 		fmt.Print("Request: ")
 		reader := bufio.NewReader(os.Stdin)
     	request, _ := reader.ReadString('\n')
-		_, err := conn.Write([]byte(newText + "\n"))
+		_, err := conn.Write([]byte(request + "\n"))
 		if err != nil {
 			fmt.Println("Client closed connection!")
 			return
@@ -21,16 +25,21 @@ func listenToClient(conn net.Conn) {
 	}
 }
 
-func waitForClient(listener net.Listener) {
+func (s Server) waitForClient(listener net.Listener) {
 	for {
 		conn,_ := listener.Accept()
 		fmt.Println("Connection established!")
+		s.Connected = true
 		listenToClient(conn)
 	}
 }
 
-func main() {
+func (s Server) Start(port string) {
 	fmt.Println("Listening for connection on port 8081...")
-	ln,_ := net.Listen("tcp", ":8081")
-	waitForClient(ln)
+	ln, err := net.Listen("tcp", port)
+	if err != nil {
+		fmt.Println("Error at listening on port " + port)
+		return
+	}
+	s.waitForClient(ln)
 }

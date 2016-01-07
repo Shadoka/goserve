@@ -1,10 +1,9 @@
-package main
+package connection
 
 import (
 	"fmt"
 	"net"
 	"bufio"
-	"os"
 	"io/ioutil"
 )
 
