@@ -5,6 +5,7 @@ import (
 	"net"
 	"bufio"
 	"io/ioutil"
+	"strings"
 )
 
 type Client struct {}
@@ -12,46 +13,47 @@ type Client struct {}
 func (c Client) Start() {
 	fmt.Println("Connecting to localhost...")
 	conn, _ := net.Dial("tcp", "127.0.0.1:8081")
+	defer conn.Close()
 	fmt.Println("Connection established!")
 	for {
 		fmt.Println("Waiting for request...")
 		request,_ := bufio.NewReader(conn).ReadString('\n')
-		fmt.Println("Request from Server: " + request)
-		processRequest(request, conn)
+		trimmedRequest := strings.TrimSuffix(request, "\n")
+		fmt.Println("Request from Server: " + trimmedRequest)
+		processRequest(trimmedRequest, conn)
 		fmt.Println("Request processed!")
 	}
 }
 
 func processRequest(request string, conn net.Conn) {
+	for _,v := range request {
+		fmt.Println(v)
+	}
 	switch request {
 	case "cat":
-		sendCatPic(conn)
+		loadAndSendPic(conn, "coolcat")
 	case "dog":
-		sendDogPic(conn)
+		loadAndSendPic(conn, "cooldog")
 	default:
-		sendErrorPic(conn)
+		loadAndSendPic(conn, "notfound")
 	}
 }
 
 func sendData(content []byte, conn net.Conn) {
-	conn.Write(content)
-}
-
-func sendCatPic(conn net.Conn) {
-	//TODO: check the number of read bytes, seems to be not reading at all
-	content, err := ioutil.ReadFile("../resources/coolcat.jpg")
+	n, err := conn.Write(content)
+	fmt.Print("written bytes: ")
+	fmt.Println(n)
 	if err != nil {
 		fmt.Println(err.Error())
 	}
-	sendData(content, conn)
 }
 
-func sendDogPic(conn net.Conn) {
-	content,_ := ioutil.ReadFile("../resources/cooldog.jpg")
-	sendData(content, conn)
-}
-
-func sendErrorPic(conn net.Conn) {
-	content,_ := ioutil.ReadFile("../resources/notfound.jpg")
+func loadAndSendPic(conn net.Conn, filename string) {
+	fmt.Println("trying to load " + filename + " picture")
+	content, err := ioutil.ReadFile("../../resources/" + filename + ".jpg")
+	fmt.Println("Size of picture: " + string(len(content)))
+	if err != nil {
+		fmt.Println(err.Error())
+	}
 	sendData(content, conn)
 }

@@ -23,8 +23,12 @@ func (s Server) RequestPicture(conn net.Conn) {
 			return
 		}
 		data := make([]byte, 0, 1000000)
-		n, _ := bufio.NewReader(conn).Read(data)
-		fmt.Println("Read " + string(n) + " bytes")
+		n, err := bufio.NewReader(conn).Read(data)
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+		fmt.Print("Read bytes: ")
+		fmt.Println(n)
 		fmt.Println("Saving picture as temp.jpg")
 		ioutil.WriteFile("temp.jpg", data, 0600)
 	}
@@ -33,6 +37,7 @@ func (s Server) RequestPicture(conn net.Conn) {
 func (s Server) waitForClient(listener net.Listener) {
 	for {
 		conn,_ := listener.Accept()
+		defer conn.Close()
 		fmt.Println("Connection established!")
 		s.Connected = true
 		s.RequestPicture(conn)
