@@ -22,13 +22,19 @@ func (s Server) RequestPicture(conn net.Conn) {
 			fmt.Println("Client closed connection!")
 			return
 		}
-		data := make([]byte, 0, 1000000)
-		n, err := bufio.NewReader(conn).Read(data)
-		if err != nil {
-			fmt.Println(err.Error())
+		data := make([]byte, 1000000, 1000000) // ~1MB
+		temp := make([]byte, 100000, 100000)
+		for {
+			n, err := conn.Read(temp)
+			if err != nil {
+				fmt.Println(err.Error())
+				break
+			}
+			fmt.Print("Read bytes: ")
+			fmt.Println(n)
+			data = append(data, temp[:n]...)
 		}
-		fmt.Print("Read bytes: ")
-		fmt.Println(n)
+		
 		fmt.Println("Saving picture as temp.jpg")
 		ioutil.WriteFile("temp.jpg", data, 0600)
 	}
